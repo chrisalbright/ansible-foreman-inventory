@@ -207,8 +207,7 @@ They must be specified via ini file.'''
         if group is None:
             return group
 
-        group_name = (re.sub("[^A-Za-z0-9\-]", "-", group.get('name')).lower())
-        return group_name
+        return group.get('label')
 
     def _get_environment_from_id(self, env_id):
         """Get environment name"""
