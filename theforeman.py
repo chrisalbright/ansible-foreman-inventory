@@ -43,6 +43,7 @@ based on the data obtained from Foreman:
  - created
  - updated
  - status
+ - hostgroup
  - ansible_ssh_host
 
 When run in --list mode, instances are grouped by the following categories:
@@ -146,6 +147,7 @@ They must be specified via ini file.'''
             'created': meta.get('created_at'),
             'updated': meta.get('updated_at'),
             'status': meta.get('status'),
+            'hostgroup': self._get_hostgroup_from_id(meta.get('hostgroup_id')),
             # to ssh from ansible
             'ansible_ssh_host': meta.get('ip'),
         }
