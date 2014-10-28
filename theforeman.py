@@ -43,6 +43,7 @@ based on the data obtained from Foreman:
  - created
  - updated
  - status
+ - hostgroup
  - ansible_ssh_host
 
 When run in --list mode, instances are grouped by the following categories:
@@ -59,7 +60,7 @@ Version: 0.0.1
 import sys
 import os
 import re
-import argparse
+import optparse
 import ConfigParser
 import collections
 
@@ -87,7 +88,10 @@ class ForemanInventory(object):
     def _empty_cache(self):
         """Empty cache"""
         keys = ['operatingsystem', 'hostgroup', 'environment', 'model', 'compute_resource', 'domain', 'subnet', 'architecture', 'host']
-        return {k:{} for k in keys}
+        keys_d = {}
+        for i in keys:
+          keys_d[i] = {}
+        return keys_d
 
     def __init__(self):
         """Main execution path"""
@@ -146,6 +150,7 @@ They must be specified via ini file.'''
             'created': meta.get('created_at'),
             'updated': meta.get('updated_at'),
             'status': meta.get('status'),
+            'hostgroup': self._get_hostgroup_from_id(meta.get('hostgroup_id')),
             # to ssh from ansible
             'ansible_ssh_host': meta.get('ip'),
         }
@@ -187,10 +192,10 @@ They must be specified via ini file.'''
 
     def parse_cli_args(self):
         """Command line argument processing"""
-        parser = argparse.ArgumentParser(description='Produce an Ansible Inventory file based on Foreman')
-        parser.add_argument('--list', action='store_true', default=True, help='List instances (default: True)')
-        parser.add_argument('--host', action='store', help='Get all the variables about a specific instance')
-        self.args = parser.parse_args()
+        parser = optparse.OptionParser(description='Produce an Ansible Inventory file based on Foreman')
+        parser.add_option('--list', action='store_true', default=True, help='List instances (default: True)')
+        parser.add_option('--host', action='store', help='Get all the variables about a specific instance')
+        (self.args, self.options) = parser.parse_args()
 
     def _get_os_from_id(self, os_id):
         """Get operating system name"""
@@ -207,8 +212,7 @@ They must be specified via ini file.'''
         if group is None:
             return group
 
-        group_name = (re.sub("[^A-Za-z0-9\-]", "-", group.get('name')).lower())
-        return group_name
+        return group.get('label')
 
     def _get_environment_from_id(self, env_id):
         """Get environment name"""
